@@ -1,0 +1,13 @@
+fun const() {
+    return 29;
+}
+
+fun id(x: Int) {
+    return x;
+}
+
+fun main() {
+    x = 2;
+    y = id(x);
+    z = const();
+}

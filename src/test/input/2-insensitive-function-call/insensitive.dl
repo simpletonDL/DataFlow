@@ -1,0 +1,59 @@
+// declarations
+.input AssignmentFromConst
+.input AssignmentFromVar
+.input AssignmentFromCall
+.input FormalArg
+.input FunctionCallInfo
+.input ActualConstArg
+.input ActualVarArg
+.input ReturnConst
+.input ActualVarArg
+.input ReturnConst
+.input ReturnVar
+
+.output PointsTo
+.output CallPointsTo
+
+// >> Assignments <<
+.decl AssignmentFromConst(v: symbol, const: symbol, method: symbol)
+.decl AssignmentFromVar(v1: symbol, v2: symbol)
+.decl AssignmentFromCall(v: symbol, call: symbol)
+
+// >> Fucntions <<
+.decl FormalArg(method: symbol, i: symbol, arg: symbol)
+.decl FunctionCallInfo(call: symbol, method: symbol)
+
+.decl ActualConstArg(call: symbol, i: symbol, const: symbol)
+.decl ActualVarArg(call: symbol, i: symbol, var: symbol)
+
+.decl ReturnConst(method: symbol, const: symbol)
+.decl ReturnVar(method: symbol, var: symbol)
+
+// Output relations
+.decl PointsTo(x: symbol, const: symbol)
+.decl CallPointsTo(call: symbol, const: symbol)
+
+// Rules for propogating cal arguments
+PointsTo(funArg, const) :- ActualConstArg(call, i, const),
+                           FunctionCallInfo(call, method),
+                           FormalArg(method, i, funArg).
+
+PointsTo(funArg, const) :- ActualVarArg(call, i, var),
+                           PointsTo(var, const),
+                           FunctionCallInfo(call, method),
+                           FormalArg(method, i, funArg).
+
+// Rules for propogating return values
+CallPointsTo(call, const) :- FunctionCallInfo(call, method),
+                             ReturnConst(method, const).
+
+CallPointsTo(call, const) :- FunctionCallInfo(call, method),
+                             ReturnVar(method, var),
+                             PointsTo(var, const).
+
+PointsTo(var, const) :- AssignmentFromCall(var, call),
+                        CallPointsTo(call, const).
+
+// Rules for assignments
+PointsTo(x, o) :- AssignmentFromConst(x, o).
+PointsTo(x, o) :- AssignmentFromVar(x, y), PointsTo(y, o).

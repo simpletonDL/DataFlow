@@ -1,0 +1,9 @@
+fun f(x : Int, y : Int) {
+    z1 = x;
+    z2 = y;
+}
+
+fun main() {
+    x = 29;
+    f(x, 42);
+}

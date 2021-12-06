@@ -1,0 +1,80 @@
+// declarations
+.input AssignmentFromConst
+.input AssignmentFromVar
+.input AssignmentFromCall
+.input FormalArg
+.input FunctionCallInfo
+.input ActualConstArg
+.input ActualVarArg
+.input ReturnConst
+.input ActualVarArg
+.input ReturnConst
+.input ReturnVar
+
+.output PointsTo
+.output CallPointsTo
+.output Reached
+
+// >> Assignments <<
+.decl AssignmentFromConst(v: symbol, const: symbol, method: symbol)
+.decl AssignmentFromVar(v1: symbol, v2: symbol)
+.decl AssignmentFromCall(v: symbol, call: symbol)
+
+// >> Fucntions <<
+.decl FormalArg(method: symbol, i: symbol, arg: symbol)
+.decl FunctionCallInfo(inMethod: symbol, call: symbol, method: symbol)
+
+.decl ActualConstArg(call: symbol, i: symbol, const: symbol)
+.decl ActualVarArg(call: symbol, i: symbol, var: symbol)
+
+.decl ReturnConst(method: symbol, const: symbol)
+.decl ReturnVar(method: symbol, var: symbol)
+
+// Output relations
+.decl CallGraph(caleerMethodCtx: symbol, callerMethod: symbol,
+                call: symbol, method: symbol)
+.output CallGraph
+
+.decl PointsTo(var: symbol, const: symbol, ctx: symbol)
+.decl CallPointsTo(callerMethodCtx: symbol, callerMethod: symbol,
+                   call: symbol, const: symbol)
+
+.decl Reached(ctx: symbol, method: symbol)
+Reached("global", "main").
+
+// Call graph building
+Reached(call, method),
+CallGraph(callerMethodCtx, callerMethod, call, method) :-
+    Reached(callerMethodCtx, callerMethod),
+    FunctionCallInfo(callerMethod, call, method).
+
+// Rules for assignments
+PointsTo(var, const, ctx) :- AssignmentFromConst(var, const, method), Reached(ctx, method).
+PointsTo(var, const, ctx) :- AssignmentFromVar(var, y), PointsTo(y, const, ctx).
+
+// Rules for propogating call arguments
+PointsTo(funArg, const, call) :-
+     ActualConstArg(call, i, const),
+     CallGraph(_, _, call, method),
+     FormalArg(method, i, funArg).
+
+PointsTo(funArg, const, call) :-
+    FormalArg(method, i, funArg),
+    ActualVarArg(call, i, var),
+    PointsTo(var, const, callerCtx),
+    CallGraph(callerCtx, _, call, method).
+
+// Rules for propogating return values
+CallPointsTo(callerMethodCtx, callerMethod, call, const) :-
+    CallGraph(callerMethodCtx, callerMethod, call, method),
+    ReturnConst(method, const).
+
+CallPointsTo(callerMethodCtx, callerMethod, call, const) :-
+    CallGraph(callerMethodCtx, callerMethod, call, method),
+    ReturnVar(method, var),
+    PointsTo(var, const, call).
+
+PointsTo(var, const, callerMethodCtx) :-
+    AssignmentFromCall(var, call),
+    CallPointsTo(callerMethodCtx, _, call, const).
+

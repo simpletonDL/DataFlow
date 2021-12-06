@@ -1,0 +1,11 @@
+.decl AssignmentFromConst(x:var, o:symbol)
+.decl AssignmentFromVar(x:var, y:symbol)
+
+.input AssignmentFromConst
+.input AssignmentFromVar
+
+.decl PointsTo(x:symbol, o:symbol)
+.output PointsTo
+
+PointsTo(x, o) :- AssignmentFromConst(x, o).
+PointsTo(x, o) :- AssignmentFromVar(x, y), PointsTo(y, o).
