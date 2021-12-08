@@ -15,17 +15,20 @@ funDef : 'fun' ID '(' (arg (',' arg)*)? ')' '{' scope '}' ;
 arg: ID ':' TYPE_ID;
 
 // Scope
-scope : varDecl* (stmt ';')*;
+scope : varDecl* stmt*;
 
 // Statements
-stmt : assignStmt | functionCall | returnStmt;
+stmt : (assignStmt ';') | (functionCall ';') | (returnStmt ';') | ifStmt;
 
 assignStmt : ID '=' expr;
 returnStmt : 'return' expr;
 functionCall: ID '(' (expr (',' expr)*)? ')';
+ifStmt : 'if' '(' condition ')' '{' scope '}' 'else' '{' scope '}';
 
 // Exspression
 expr : CONST | ID | functionCall;
+
+condition: ID '==' CONST;
 
 // Comment
 comment

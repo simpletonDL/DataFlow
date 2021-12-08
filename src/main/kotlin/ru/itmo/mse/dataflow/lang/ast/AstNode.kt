@@ -1,5 +1,7 @@
 package ru.itmo.mse.dataflow.lang.ast
 
+import java.util.concurrent.locks.Condition
+
 data class Position(val line: Int, val pos: Int) {
     override fun toString() = "$line:$pos"
 }
@@ -52,6 +54,21 @@ class FunctionCallStatement(position: Position,
 
 class ReturnStatement(position: Position, val expr: Expression): Statement(position) {
     override fun toString() = "return $expr"
+}
+
+class IfStatement(position: Position,
+                  val condition: ConditionExpression,
+                  val trueBranch: Scope,
+                  val falseBranch: Scope): Statement(position) {
+    override fun toString() = "if ($condition) $trueBranch $falseBranch"
+}
+
+sealed class ConditionExpression(position: Position): AstNode(position)
+
+class EqualityToConstCondition(position: Position,
+                               val variable: Variable,
+                               val const: ConstInt): ConditionExpression(position) {
+    override fun toString() = "$variable == $const"
 }
 
 // Expressions

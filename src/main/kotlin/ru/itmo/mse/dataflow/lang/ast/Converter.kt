@@ -65,6 +65,7 @@ class Converter {
         val assign: AssignStmtContext? = assignStmt()
         val functionCall: FunctionCallContext? = functionCall()
         val returnStmt: ReturnStmtContext? = returnStmt()
+        val ifStmt: IfStmtContext? = ifStmt()
 
         val pos = start.makePos()
         return when {
@@ -76,8 +77,16 @@ class Converter {
             }
             returnStmt != null ->
                 ReturnStatement(pos, returnStmt.expr().convert())
+            ifStmt != null -> {
+                IfStatement(pos, ifStmt.condition().convert(), ifStmt.scope(0).convert(), ifStmt.scope(1).convert())
+            }
             else -> throw ConverterException("Assignment $text is not converted")
         }
+    }
+
+    private fun ConditionContext.convert(): ConditionExpression {
+        val pos = start.makePos()
+        return EqualityToConstCondition(pos, Variable(pos, ID().text), ConstInt(pos, CONST().text.toInt()))
     }
 
     private fun VarDeclContext.convert(): VarDeclaration {

@@ -100,6 +100,16 @@ public interface SimpleLangListener extends ParseTreeListener {
 	 */
 	void exitFunctionCall(SimpleLangParser.FunctionCallContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SimpleLangParser#ifStmt}.
+	 * @param ctx the parse tree
+	 */
+	void enterIfStmt(SimpleLangParser.IfStmtContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SimpleLangParser#ifStmt}.
+	 * @param ctx the parse tree
+	 */
+	void exitIfStmt(SimpleLangParser.IfStmtContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SimpleLangParser#expr}.
 	 * @param ctx the parse tree
 	 */
@@ -109,6 +119,16 @@ public interface SimpleLangListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitExpr(SimpleLangParser.ExprContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SimpleLangParser#condition}.
+	 * @param ctx the parse tree
+	 */
+	void enterCondition(SimpleLangParser.ConditionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SimpleLangParser#condition}.
+	 * @param ctx the parse tree
+	 */
+	void exitCondition(SimpleLangParser.ConditionContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SimpleLangParser#comment}.
 	 * @param ctx the parse tree

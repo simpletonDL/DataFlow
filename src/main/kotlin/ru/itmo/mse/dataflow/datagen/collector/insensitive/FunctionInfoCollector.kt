@@ -7,19 +7,6 @@ import ru.itmo.mse.dataflow.lang.semantic.FunctionScopeResolver
 open class FunctionInfoCollector(program: Program): CollectorBase(program) {
     protected val resolver = FunctionScopeResolver(program)
 
-    companion object {
-        const val FORMAL_ARG = "FormalArg" // (method : M, i : N, arg : V)
-        const val ACTUAL_CONST_ARG = "ActualConstArg" // (invo : I, n : N, const : C)
-        const val ACTUAL_VAR_ARG = "ActualVarArg" // (invo : I, n : N, const : C)
-
-        const val FUNCTION_CALL_INFO = "FunctionCallInfo" // (invo: I, method: M)
-
-        const val RETURN_CONST = "ReturnConst" // (method: M, const: C)
-        const val RETURN_VAR = "ReturnVar" // (method: M, var: V)
-
-        fun fabric(program: Program) = FunctionInfoCollector(program)
-    }
-
     object Fabric: CollectorFabric {
         override fun createCollector(program: Program) = FunctionInfoCollector(program)
     }
@@ -48,10 +35,11 @@ open class FunctionInfoCollector(program: Program): CollectorBase(program) {
             }
             is FunctionCallStatement -> makeCall(statement.call)
             is ReturnStatement -> makeReturn(statement)
+            is IfStatement -> (collectFromScope(statement.trueBranch) + collectFromScope(statement.falseBranch)).toList()
         }
     }
 
-    private fun makeReturn(returnStatement: ReturnStatement): List<Tuple> {
+    open protected fun makeReturn(returnStatement: ReturnStatement): List<Tuple> {
         val methodName = resolver.resolve(returnStatement).name
         val tuple = when(val expr = returnStatement.expr) {
             is ConstInt -> Tuple(RETURN_CONST, methodName, expr.value)

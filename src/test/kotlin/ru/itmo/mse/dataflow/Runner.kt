@@ -1,29 +1,79 @@
 package ru.itmo.mse.dataflow
 
+import guru.nidi.graphviz.engine.Format
 import org.apache.commons.io.FileUtils
-import org.apache.commons.lang3.StringUtils
 import ru.itmo.mse.dataflow.datagen.SouffleInputBuilder
+import ru.itmo.mse.dataflow.datagen.collector.*
 import ru.itmo.mse.dataflow.datagen.collector.CollectorFabric
 import ru.itmo.mse.dataflow.datagen.collector.insensitive.AssignmentFromCollector
 import ru.itmo.mse.dataflow.datagen.collector.insensitive.FunctionInfoCollector
-import ru.itmo.mse.dataflow.datagen.collector.sensitive.AssignmentFromCallSensitiveCollector
-import ru.itmo.mse.dataflow.datagen.collector.sensitive.FunctionInfoCallSensitiveCollector
+import ru.itmo.mse.dataflow.datagen.collector.callsensitive.AssignmentFromCallSensitiveCollector
+import ru.itmo.mse.dataflow.datagen.collector.callsensitive.FunctionInfoCallSensitiveCollector
+import ru.itmo.mse.dataflow.datagen.collector.flowsensitive.AssignmentFromFlowSensitiveCollector
+import ru.itmo.mse.dataflow.datagen.collector.flowsensitive.ControlFowGraphBuilder
+import ru.itmo.mse.dataflow.datagen.collector.flowsensitive.FunctionInfoFlowSensitiveCollector
+import ru.itmo.mse.dataflow.datagen.collector.flowsensitive.JumpCollector
+import ru.itmo.mse.dataflow.lang.ast.Converter
 import ru.itmo.mse.dataflow.printer.CsvPrettyPrinter
 import ru.itmo.mse.dataflow.souffle.SouffleProvider
 import java.io.File
 import java.nio.file.Paths
 import kotlin.io.path.exists
 
+val inputFactsOrder = listOf(
+    ASSIGNMENT_FROM_CONST,
+    ASSIGNMENT_FROM_VAR,
+    ASSIGNMENT_FROM_CALL,
+
+    FUNCTION_CALL_INFO,
+    FORMAL_ARG,
+    ACTUAL_CONST_ARG,
+    ACTUAL_VAR_ARG,
+
+    RETURN_CONST,
+    RETURN_VAR,
+    UNCONDITIONAL_JUMP
+)
 
 class TestCaseRunner {
     private val testDir = Paths.get("src/test")
     private val inputDir = testDir.resolve("input")
     private val outputDir = testDir.resolve("output")
 
+    @OptIn(ExperimentalStdlibApi::class)
+    private fun collectSignatures(dlFile: File): Map<String, List<String>> {
+        return buildMap {
+            for (line in FileUtils.readFileToString(dlFile).split("\n")) {
+                if (line.startsWith(".decl")) {
+                    val parts = line.split("(")
+                    val relName = parts[0].split(" ")[1].trim()
+                    val args = parts[1].dropLast(1).split(",").map { it.split(":")[0].trim() }
+                    put(relName, args)
+                }
+            }
+        }
+    }
+
+    fun buildCFGraph(testCaseDirName: String) {
+        val inputDir = inputDir.resolve(testCaseDirName)
+        val input = Utils.makeInput(inputDir)
+
+        val program = Converter().convert(input.yalPath)
+        val cfg = ControlFowGraphBuilder(program).build()
+
+        val picturesDir = Paths.get("pictures").toFile()
+        if (!picturesDir.exists()) {
+            FileUtils.forceMkdir(picturesDir)
+        }
+        cfg.toGraphviz().render(Format.SVG).toFile(picturesDir.resolve(testCaseDirName))
+    }
+
     fun runTestCase(testCaseDirName: String, collectors: List<CollectorFabric>, runSouffle: Boolean = true) {
         val inputDir = inputDir.resolve(testCaseDirName)
         val input = Utils.makeInput(inputDir)
-        val printer = CsvPrettyPrinter()
+
+        val signatures = if (input.dlPath != null) { collectSignatures(input.dlPath.toFile()) } else { null }
+        val printer = CsvPrettyPrinter(signatures)
 
         val dataGen = SouffleInputBuilder(*collectors.toTypedArray())
 
@@ -37,7 +87,17 @@ class TestCaseRunner {
         dataGen.genData(souffleInputFactsDir, input.yalPath)
 
         println("INPUT FACTS:")
-        for (f in souffleInputFactsDir.toFile().listFiles()!!.sortedBy { it.name }) {
+
+        fun inputFactsKey(fileName: String): Int {
+            val idx = inputFactsOrder.indexOf(fileName.split(".")[0])
+            if (idx == -1) {
+                return inputFactsOrder.size
+            } else {
+                return idx
+            }
+        }
+
+        for (f in souffleInputFactsDir.toFile().listFiles()!!.sortedBy { inputFactsKey(it.name) }) {
             printer.prettyPrintCsv(f)
             println()
         }
@@ -63,10 +123,14 @@ class TestCaseRunner {
 
 val insensitive = listOf(AssignmentFromCollector.Fabric, FunctionInfoCollector.Fabric)
 val call_sensitive = listOf(AssignmentFromCallSensitiveCollector.Fabric, FunctionInfoCallSensitiveCollector.Fabric)
+val flow_sensitive = listOf(AssignmentFromFlowSensitiveCollector.Fabric, JumpCollector.Fabric, FunctionInfoFlowSensitiveCollector.Fabric)
 
 fun main() {
     val runner = TestCaseRunner()
 //    runner.runTestCase("1-insensitive-simple", insensitive)
 //    runner.runTestCase("2-insensitive-function-call", insensitive)
-    runner.runTestCase("3-call-sensitive", call_sensitive, true)
+//    runner.runTestCase("3-call-sensitive", call_sensitive, true)
+
+    runner.buildCFGraph("4-flow-sensitive")
+//    runner.runTestCase("4-flow-sensitive", flow_sensitive, true)
 }

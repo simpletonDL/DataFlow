@@ -34,13 +34,20 @@ class FunctionScopeResolver(val program: Program) {
             populateExpr(varDecl.initExpr, funcDef)
         }
         for (stmt in scope.stmts) {
-            when (stmt) {
+            val check1 = when (stmt) {
                 is AssignStatement -> {
                     populateVariable(stmt.variable, funcDef)
                     populateExpr(stmt.expr, funcDef)
                 }
                 is FunctionCallStatement -> populateFunctionCall(stmt.call, funcDef)
                 is ReturnStatement -> populateReturn(stmt, funcDef)
+                is IfStatement -> {
+                    populateScope(funcDef, stmt.trueBranch)
+                    populateScope(funcDef, stmt.falseBranch)
+                    val check2 = when (stmt.condition) {
+                        is EqualityToConstCondition -> populateVariable(stmt.condition.variable, funcDef)
+                    }
+                }
             }
         }
     }

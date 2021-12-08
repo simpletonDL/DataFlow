@@ -1,0 +1,73 @@
+// declarations
+.input AssignmentFromConst
+.input AssignmentFromVar
+.input AssignmentFromCall
+.input FormalArg
+.input FunctionCallInfo
+.input ActualConstArg
+.input ActualVarArg
+.input ReturnConst
+.input ActualVarArg
+.input ReturnConst
+.input ReturnVar
+
+.input UnconditionalJump
+.input StartNode
+
+.output PointsTo
+//.output CallPointsTo
+.output ReachedMethod
+.output ReachedNode
+.output Assignment
+
+// >> Assignments <<
+.decl AssignmentFromConst(var: symbol, const: symbol, method: symbol, node: symbol)
+.decl AssignmentFromVar(v1: symbol, v2: symbol, node: symbol)
+.decl AssignmentFromCall(v: symbol, call: symbol, node: symbol)
+
+.decl FormalArg(method: symbol, i: symbol, arg: symbol)
+.decl FunctionCallInfo(inMethod: symbol, call: symbol, method: symbol, node: symbol)
+
+.decl ActualConstArg(call: symbol, i: symbol, const: symbol)
+.decl ActualVarArg(call: symbol, i: symbol, var: symbol)
+
+.decl ReturnConst(method: symbol, const: symbol, node: symbol)
+.decl ReturnVar(method: symbol, var: symbol, node: symbol)
+
+.decl UnconditionalJump(from: symbol, to: symbol)
+.decl StartNode(method: symbol, node: symbol)
+
+// Output
+.decl PointsTo(var: symbol, const: symbol, ctx: symbol, v: symbol)
+
+.decl ReachedMethod(ctx: symbol, method: symbol)
+.decl ReachedNode(ctx: symbol, node: symbol)
+.decl Assignment(node: symbol, var: symbol)
+
+ReachedMethod("global", "main").
+
+ReachedNode(ctx, node) :- ReachedMethod(ctx, method), StartNode(method, node).
+ReachedNode(ctx, node) :- UnconditionalJump(prev, node), ReachedNode(ctx, prev).
+
+// PointsTo
+PointsTo(var, const, ctx, node) :-
+    ReachedNode(ctx, node),
+    AssignmentFromConst(var, const, _, node).
+
+
+// Проталкивание PointsTo по controlFlow
+Assignment(node, var) :-
+    AssignmentFromConst(var, _, _, node);
+    AssignmentFromVar(var, _, node);
+    AssignmentFromCall(var, _, node).
+
+// Проталкивание PointsTo по присваиваниям
+PointsTo(var, const, ctx, node) :-
+    UnconditionalJump(prev, node),
+    PointsTo(var, const, ctx, prev),
+    !Assignment(node, var).
+
+PointsTo(var, const, ctx, node) :-
+    AssignmentFromVar(var, y, node),
+    UnconditionalJump(prev, node),
+    PointsTo(y, const, ctx, prev).

@@ -1,0 +1,7 @@
+main::x	2	global	2
+main::x	2	global	3
+main::x	2	global	4
+main::x	3	global	5
+main::y	2	global	5
+main::y	2	global	4
+main::y	1	global	3

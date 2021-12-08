@@ -9,7 +9,7 @@ abstract class CollectorBase(protected val program: Program): Collector {
         }.toSet()
     }
 
-    private fun collectFromScope(scope: Scope): Set<Tuple> {
+    protected fun collectFromScope(scope: Scope): Set<Tuple> {
         val factsFromStmts = scope.stmts.flatMap { stmt -> collectFromStatement(stmt) }.toSet()
         val factsFromDecls = scope.varDecls.flatMap { stmt -> collectFromVarDeclaration(stmt) }.toSet()
         return factsFromStmts + factsFromDecls

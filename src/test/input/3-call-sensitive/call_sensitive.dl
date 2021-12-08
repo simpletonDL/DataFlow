@@ -13,7 +13,7 @@
 
 .output PointsTo
 .output CallPointsTo
-.output Reached
+.output ReachedMethod
 
 // >> Assignments <<
 .decl AssignmentFromConst(v: symbol, const: symbol, method: symbol)
@@ -39,17 +39,17 @@
 .decl CallPointsTo(callerMethodCtx: symbol, callerMethod: symbol,
                    call: symbol, const: symbol)
 
-.decl Reached(ctx: symbol, method: symbol)
-Reached("global", "main").
+.decl ReachedMethod(ctx: symbol, method: symbol)
+ReachedMethod("global", "main").
 
 // Call graph building
-Reached(call, method),
+ReachedMethod(call, method),
 CallGraph(callerMethodCtx, callerMethod, call, method) :-
-    Reached(callerMethodCtx, callerMethod),
+    ReachedMethod(callerMethodCtx, callerMethod),
     FunctionCallInfo(callerMethod, call, method).
 
 // Rules for assignments
-PointsTo(var, const, ctx) :- AssignmentFromConst(var, const, method), Reached(ctx, method).
+PointsTo(var, const, ctx) :- AssignmentFromConst(var, const, method), ReachedMethod(ctx, method).
 PointsTo(var, const, ctx) :- AssignmentFromVar(var, y), PointsTo(y, const, ctx).
 
 // Rules for propogating call arguments

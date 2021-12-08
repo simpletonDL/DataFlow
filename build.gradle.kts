@@ -19,6 +19,7 @@ dependencies {
     implementation("org.apache.commons:commons-csv:1.5")
     implementation("org.apache.commons:commons-io:1.3.2")
     implementation("org.apache.commons:commons-lang3:3.0")
+    implementation("guru.nidi:graphviz-kotlin:0.18.0")
 }
 
 tasks.test {
