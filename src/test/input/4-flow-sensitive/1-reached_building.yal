@@ -1,0 +1,8 @@
+fun id(y: Int) {
+    z = y;
+}
+
+fun main() {
+    x = 3;
+    id(x);
+}

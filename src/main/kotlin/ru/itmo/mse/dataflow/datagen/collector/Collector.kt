@@ -16,7 +16,11 @@ const val FUNCTION_CALL_INFO = "FunctionCallInfo" // (invo: I, method: M)
 
 const val RETURN_CONST = "ReturnConst" // (method: M, const: C)
 const val RETURN_VAR = "ReturnVar" // (method: M, var: V)
+
 const val UNCONDITIONAL_JUMP = "UnconditionalJump"
+const val EQUALITY_TO_CONST_JUMP = "EqualityToConstJump"
+const val NOT_EQUALITY_TO_CONST_JUMP = "NotEqualityToConstJump"
+
 const val START_NODE = "StartNode"
 
 interface Collector {

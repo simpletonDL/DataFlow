@@ -12,18 +12,22 @@
 .input ReturnVar
 
 .input UnconditionalJump
+.input EqualityToConstJump
+.input NotEqualityToConstJump
 .input StartNode
 
-.output PointsTo
-//.output CallPointsTo
-.output ReachedMethod
+.output PointsToAfter
+.output CallPointsTo
+.output CallGraph
 .output ReachedNode
 .output Assignment
+.output IsReturn
+.output Jump
 
 // >> Assignments <<
 .decl AssignmentFromConst(var: symbol, const: symbol, method: symbol, node: symbol)
-.decl AssignmentFromVar(v1: symbol, v2: symbol, node: symbol)
-.decl AssignmentFromCall(v: symbol, call: symbol, node: symbol)
+.decl AssignmentFromVar(var1: symbol, var2: symbol, node: symbol)
+.decl AssignmentFromCall(var: symbol, call: symbol, node: symbol)
 
 .decl FormalArg(method: symbol, i: symbol, arg: symbol)
 .decl FunctionCallInfo(inMethod: symbol, call: symbol, method: symbol, node: symbol)
@@ -34,40 +38,112 @@
 .decl ReturnConst(method: symbol, const: symbol, node: symbol)
 .decl ReturnVar(method: symbol, var: symbol, node: symbol)
 
-.decl UnconditionalJump(from: symbol, to: symbol)
 .decl StartNode(method: symbol, node: symbol)
 
-// Output
-.decl PointsTo(var: symbol, const: symbol, ctx: symbol, v: symbol)
+.decl UnconditionalJump(from: symbol, to: symbol)
+.decl EqualityToConstJump(from: symbol, to: symbol, var: symbol, const: symbol)
+.decl NotEqualityToConstJump(from: symbol, to: symbol, var: symbol, const: symbol)
 
-.decl ReachedMethod(ctx: symbol, method: symbol)
+// Output
+// После выполнения node
+.decl PointsToAfter(var: symbol, const: symbol, ctx: symbol, node: symbol)
+.decl PointsToBefore(var: symbol, const: symbol, ctx: symbol, node: symbol)
+.decl CallPointsTo(callerMethodCtx: symbol, callerMethod: symbol, call: symbol, const: symbol)
+
+.decl CallGraph(callerMethodCtx: symbol, callerMethod: symbol, call: symbol, method: symbol)
 .decl ReachedNode(ctx: symbol, node: symbol)
 .decl Assignment(node: symbol, var: symbol)
 
-ReachedMethod("global", "main").
+.decl IsReturn(node: symbol)
+.decl Jump(from: symbol, to: symbol)
 
-ReachedNode(ctx, node) :- ReachedMethod(ctx, method), StartNode(method, node).
-ReachedNode(ctx, node) :- UnconditionalJump(prev, node), ReachedNode(ctx, prev).
+// Вспомогательные штуки
+IsReturn(node) :- ReturnConst(_, _, node); ReturnVar(_, _, node).
+Jump(v, to) :-
+    UnconditionalJump(v, to);
+    EqualityToConstJump(v, to, _, _);
+    NotEqualityToConstJump(v, to, _, _).
 
-// PointsTo
-PointsTo(var, const, ctx, node) :-
+// I. Прогулка по Control Flow с динамическим построением графа вызовов функций.
+ReachedNode("main()", node) :- StartNode("main", node).
+
+ReachedNode(ctx, node) :-
+    UnconditionalJump(prev, node),
+    ReachedNode(ctx, prev),
+    !IsReturn(prev).
+
+CallGraph(callerMethodCtx, callerMethod, call, method) :-
+    ReachedNode(callerMethodCtx, node),
+    FunctionCallInfo(callerMethod, call, method, node).
+
+// Q: В каком смысле построение динамическое?
+
+ReachedNode(call, node) :-
+    CallGraph(_, _, call, method),
+    StartNode(method, node).
+
+// II. Базовый PointsToAfter
+// 1. Присваивание константе
+PointsToAfter(var, const, ctx, node) :-
     ReachedNode(ctx, node),
     AssignmentFromConst(var, const, _, node).
 
-
-// Проталкивание PointsTo по controlFlow
+// 2. Проталкивание PointsToAfter по controlFlow
 Assignment(node, var) :-
     AssignmentFromConst(var, _, _, node);
     AssignmentFromVar(var, _, node);
     AssignmentFromCall(var, _, node).
 
-// Проталкивание PointsTo по присваиваниям
-PointsTo(var, const, ctx, node) :-
-    UnconditionalJump(prev, node),
-    PointsTo(var, const, ctx, prev),
+PointsToAfter(var, const, ctx, node) :-
+    ReachedNode(ctx, node),
+    Jump(prev, node),
+    PointsToAfter(var, const, ctx, prev),
     !Assignment(node, var).
 
-PointsTo(var, const, ctx, node) :-
-    AssignmentFromVar(var, y, node),
-    UnconditionalJump(prev, node),
-    PointsTo(y, const, ctx, prev).
+// 3. Присваивание переменной
+PointsToBefore(var, const, ctx, node) :-
+    Jump(prev, node),
+    PointsToAfter(var, const, ctx, prev).
+
+PointsToAfter(left, const, ctx, node) :-
+    ReachedNode(ctx, node),
+    AssignmentFromVar(left, right, node),
+    PointsToBefore(right, const, ctx, node).
+
+// III. Межпроцедурный PointsToAfter
+// 1. Проталкивание аргументов
+// Recap: CallGraph => Reached
+PointsToAfter(funArg, const, call, node) :-
+     CallGraph(_, _, call, method),
+     StartNode(method, node),
+     ActualConstArg(call, i, const),
+     FormalArg(method, i, funArg).
+
+PointsToAfter(funArg, const, call, node) :-
+    CallGraph(callerCtx, _, call, method),
+    StartNode(method, node),
+    FormalArg(method, i, funArg),
+    ActualVarArg(call, i, var),
+    FunctionCallInfo(_, call, method, callNode),
+    PointsToBefore(var, const, callerCtx, callNode).
+
+//// 2. Проталкивание return
+CallPointsTo(callerMethodCtx, callerMethod, call, const) :-
+    CallGraph(callerMethodCtx, callerMethod, call, method),
+    ReachedNode(call, returnNode),
+    ReturnConst(method, const, returnNode).
+
+CallPointsTo(callerMethodCtx, callerMethod, call, const) :-
+    CallGraph(callerMethodCtx, callerMethod, call, method),
+    ReachedNode(call, returnNode),
+    ReturnVar(method, var, returnNode),
+    PointsToBefore(var, const, call, returnNode).
+
+PointsToAfter(var, const, callerMethodCtx, node) :-
+    AssignmentFromCall(var, call, node),
+    CallPointsTo(callerMethodCtx, _, call, const).
+
+// IV If/then/else
+ReachedNode(ctx, thenBranch) :-
+    EqualityToConstJump(cond, thenBranch, var, const),
+    PointsToAfter(var, const, ctx, cond).

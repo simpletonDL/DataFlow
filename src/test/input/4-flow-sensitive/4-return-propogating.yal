@@ -1,0 +1,7 @@
+fun id(x: Int) {
+    return 2;
+}
+
+fun main() {
+    x = id(1);
+}

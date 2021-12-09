@@ -31,7 +31,7 @@
 .decl ReturnVar(method: symbol, var: symbol)
 
 // Output relations
-.decl CallGraph(caleerMethodCtx: symbol, callerMethod: symbol,
+.decl CallGraph(callerMethodCtx: symbol, callerMethod: symbol,
                 call: symbol, method: symbol)
 .output CallGraph
 
@@ -39,6 +39,7 @@
 .decl CallPointsTo(callerMethodCtx: symbol, callerMethod: symbol,
                    call: symbol, const: symbol)
 
+// TODO: Remove reached method!!!
 .decl ReachedMethod(ctx: symbol, method: symbol)
 ReachedMethod("global", "main").
 

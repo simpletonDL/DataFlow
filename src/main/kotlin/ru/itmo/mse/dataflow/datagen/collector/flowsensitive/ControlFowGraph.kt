@@ -25,6 +25,10 @@ class ControlFowGraph {
         nodeInfoReverse[astNode] = v
     }
 
+    fun getNodeInfo(v: Int): AstNode? {
+        return nodeInfo[v]
+    }
+
     fun getVertexNode(astNode: AstNode): Int? {
         return nodeInfoReverse[astNode]
     }
@@ -108,18 +112,12 @@ class ControlFowGraphBuilder(val program: Program) {
                 if (stmt is AssignStatement && stmt.expr is FunctionCall) {
                     g.addNodeInfo(curNode, stmt.expr)
                 }
+                if (stmt is FunctionCallStatement) {
+                    g.addNodeInfo(curNode, stmt.call)
+                }
                 g.addNodeInfo(curNode, stmt)
                 return build(curNode, stmts.drop(1), g)
             }
         }
     }
-}
-
-fun main() {
-    val converter = Converter()
-    val program = converter.convert(Paths.get("/Users/Arseniy.Terekhov/JB/DataFlow/src/test/input/3-call-sensitive/main.yal"))
-
-    val g = ControlFowGraphBuilder(program).build()
-    println(g)
-    g.toGraphviz().render(Format.SVG).toFile(File("ex1.svg"))
 }
