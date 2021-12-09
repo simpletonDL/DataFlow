@@ -147,3 +147,7 @@ PointsToAfter(var, const, callerMethodCtx, node) :-
 ReachedNode(ctx, thenBranch) :-
     EqualityToConstJump(cond, thenBranch, var, const),
     PointsToAfter(var, const, ctx, cond).
+
+ReachedNode(ctx, elseBranch) :-
+    NotEqualityToConstJump(cond, elseBranch, var, const),
+    PointsToAfter(var, anotherConst, ctx, cond), anotherConst != const.
