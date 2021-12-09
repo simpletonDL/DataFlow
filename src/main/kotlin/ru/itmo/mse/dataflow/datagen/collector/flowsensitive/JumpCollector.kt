@@ -4,6 +4,7 @@ import ru.itmo.mse.dataflow.datagen.collector.*
 import ru.itmo.mse.dataflow.lang.ast.ConditionExpression
 import ru.itmo.mse.dataflow.lang.ast.EqualityToConstCondition
 import ru.itmo.mse.dataflow.lang.ast.Program
+import ru.itmo.mse.dataflow.lang.ast.RandomCondition
 import ru.itmo.mse.dataflow.lang.semantic.FunctionScopeResolver
 
 class JumpCollector(program: Program): Collector {
@@ -27,6 +28,10 @@ class JumpCollector(program: Program): Collector {
                             val varName = resolver.makeVarName(nodeInfo.variable)
                             add(Tuple(EQUALITY_TO_CONST_JUMP, v, toList[0], varName, nodeInfo.const))
                             add(Tuple(NOT_EQUALITY_TO_CONST_JUMP, v, toList[1], varName, nodeInfo.const))
+                        }
+                        is RandomCondition -> {
+                            add(Tuple(UNCONDITIONAL_JUMP, v, toList[0]))
+                            add(Tuple(UNCONDITIONAL_JUMP, v, toList[1]))
                         }
                     }
                 } else {

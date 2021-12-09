@@ -1,12 +1,13 @@
-fun f(x: Int) {
-    if (x == 0) {
-        return 29;
-    } else {
-        return 42;
-    }
-}
-
 fun main() {
-    y = f(0);
-    z = f(1);
+    if (random) {
+        x = 2;
+    } else {
+        x = 3;
+    }
+    z = x;
+    if (z == 5) {
+        y = 10;
+    } else {
+        y = 20;
+    }
 }

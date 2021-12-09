@@ -46,6 +46,7 @@ class FunctionScopeResolver(val program: Program) {
                     populateScope(funcDef, stmt.falseBranch)
                     val check2 = when (stmt.condition) {
                         is EqualityToConstCondition -> populateVariable(stmt.condition.variable, funcDef)
+                        is RandomCondition -> {}
                     }
                 }
             }

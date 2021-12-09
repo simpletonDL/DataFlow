@@ -1,2 +1,4 @@
-global	main	7:13:id	id
-global	main	8:13:id	id
+global	main	11:7:f	f
+global	main	12:7:f	f
+11:7:f	f	6:11:g	g
+12:7:f	f	6:11:g	g

@@ -1,5 +1,8 @@
-main::y	2	global
-main::z1	2	global
-main::z2	3	global
-id::x	2	7:13:id
-id::x	3	8:13:id
+f::y	1	11:7:f
+f::y	1	12:7:f
+f::y	2	11:7:f
+f::y	2	12:7:f
+g::x	1	6:11:g
+g::x	2	6:11:g
+f::x	1	11:7:f
+f::x	2	12:7:f

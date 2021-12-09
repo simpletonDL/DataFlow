@@ -130,6 +130,26 @@ public interface SimpleLangListener extends ParseTreeListener {
 	 */
 	void exitCondition(SimpleLangParser.ConditionContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link SimpleLangParser#equality}.
+	 * @param ctx the parse tree
+	 */
+	void enterEquality(SimpleLangParser.EqualityContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SimpleLangParser#equality}.
+	 * @param ctx the parse tree
+	 */
+	void exitEquality(SimpleLangParser.EqualityContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SimpleLangParser#random}.
+	 * @param ctx the parse tree
+	 */
+	void enterRandom(SimpleLangParser.RandomContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SimpleLangParser#random}.
+	 * @param ctx the parse tree
+	 */
+	void exitRandom(SimpleLangParser.RandomContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link SimpleLangParser#comment}.
 	 * @param ctx the parse tree
 	 */

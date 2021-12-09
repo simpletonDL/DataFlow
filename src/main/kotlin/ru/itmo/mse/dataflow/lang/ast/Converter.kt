@@ -85,8 +85,16 @@ class Converter {
     }
 
     private fun ConditionContext.convert(): ConditionExpression {
+        val equality = equality();
+        val random = random();
+
         val pos = start.makePos()
-        return EqualityToConstCondition(pos, Variable(pos, ID().text), ConstInt(pos, CONST().text.toInt()))
+        return when {
+            equality != null ->
+                EqualityToConstCondition(pos, Variable(pos, equality.ID().text), ConstInt(pos, equality.CONST().text.toInt()))
+            random != null -> RandomCondition(pos)
+            else -> throw ConverterException(":(")
+        }
     }
 
     private fun VarDeclContext.convert(): VarDeclaration {

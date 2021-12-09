@@ -29,6 +29,6 @@ fun main() {
     val runner = TestCaseRunner()
 //    runner.runTestCase("1-insensitive-simple", insensitive)
 //    runner.runTestCase("2-insensitive-function-call", insensitive)
-//    runner.runTestCase("3-call-sensitive", call_sensitive, true)
-    runner.runTestCase("4-flow-sensitive", flow_sensitive, true)
+    runner.runTestCase("3-call-sensitive", call_sensitive, true)
+//    runner.runTestCase("4-flow-sensitive", flow_sensitive, true)
 }

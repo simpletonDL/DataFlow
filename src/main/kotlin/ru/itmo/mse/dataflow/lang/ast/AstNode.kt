@@ -71,6 +71,10 @@ class EqualityToConstCondition(position: Position,
     override fun toString() = "$variable == $const"
 }
 
+class RandomCondition(position: Position): ConditionExpression(position) {
+    override fun toString() = "random"
+}
+
 // Expressions
 sealed class Expression(position: Position): AstNode(position)
 

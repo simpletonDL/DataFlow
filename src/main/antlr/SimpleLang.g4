@@ -28,7 +28,10 @@ ifStmt : 'if' '(' condition ')' '{' scope '}' 'else' '{' scope '}';
 // Exspression
 expr : CONST | ID | functionCall;
 
-condition: ID '==' CONST;
+condition: equality | random;
+
+equality: ID '==' CONST;
+random: 'random';
 
 // Comment
 comment
