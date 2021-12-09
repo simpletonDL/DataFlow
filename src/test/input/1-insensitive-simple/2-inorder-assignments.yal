@@ -1,6 +1,6 @@
 fun main() {
-	var x: Int = 10;
-	var y: Int = x;
+	x = 10;
+	y = x;
 
 	x = 20;
 	x = 30;

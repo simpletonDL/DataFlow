@@ -1,8 +1,0 @@
-fun id(x: Int) {
-    return x;
-}
-
-fun main() {
-    y = id(1);
-    z = id(2);
-}

@@ -1,5 +1,5 @@
-.decl AssignmentFromConst(x:var, o:symbol)
-.decl AssignmentFromVar(x:var, y:symbol)
+.decl AssignmentFromConst(x:symbol, o:symbol)
+.decl AssignmentFromVar(x:symbol, y:symbol)
 
 .input AssignmentFromConst
 .input AssignmentFromVar

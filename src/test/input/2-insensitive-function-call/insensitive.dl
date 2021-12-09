@@ -15,7 +15,7 @@
 .output CallPointsTo
 
 // >> Assignments <<
-.decl AssignmentFromConst(v: symbol, const: symbol, method: symbol)
+.decl AssignmentFromConst(v: symbol, const: symbol)
 .decl AssignmentFromVar(v1: symbol, v2: symbol)
 .decl AssignmentFromCall(v: symbol, call: symbol)
 
